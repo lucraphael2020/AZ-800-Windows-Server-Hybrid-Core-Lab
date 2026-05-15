@@ -137,5 +137,103 @@ The environment also demonstrates the importance of documentation. Without struc
 - Document IP ranges and VLAN logic
 - Add backup and recovery procedures
 - Add monitoring and logging documentation
+
+---
+
+## Procédure de nettoyage (Cleanup Procedure)
+
+### Introduction
+Cette section décrit la procédure systématique de nettoyage du groupe de ressources **RG-Pharmasy** dans Azure. Elle vise à supprimer toutes les ressources créées durant le lab, dans le bon ordre, afin d'éviter les dépendances non résolues et les erreurs.
+
+> **Important :** La suppression des ressources doit être effectuée dans l'ordre suivant pour éviter les blocages liés aux dépendances. Commencez par les éléments les plus haut niveau (VMs, disques) avant de supprimer les éléments réseau et de gestion.
+
+### Étape 1 — Arrêter et désallouer les machines virtuelles
+
+Avant toute suppression, il est recommandé d'arrêter et de désallouer les VMs pour libérer les ressources de calcul facturées.
+
+1. Dans le **Portail Azure**, naviguez vers **RG-Pharmasy**.
+2. Sélectionnez chaque machine virtuelle (DC01, SEA-ADM1, VM-AZ104-01).
+3. Cliquez sur **Arrêter** (Stop) puis attendez que le statut passe à **Arrêté (désalloué)**.
+
+### Étape 2 — Supprimer les Disques OS et Données
+
+Les disques ne sont supprimés automatiquement que si la VM est supprimée avec l'option "Supprimer les disques associés". Sinon, ils doivent être supprimés manuellement.
+
+| Nom du disque | Taille estimée |
+|---------------|----------------|
+| DC01_OsDisk | ~127 Go |
+| SEA-ADM1_OsDisk | ~127 Go |
+| VM-AZ104-01_OsDisk | ~127 Go |
+
+1. Naviguez vers **Disques** dans RG-Pharmasy.
+2. Sélectionnez chaque disque OS et cliquez sur **Supprimer**.
+
+### Étape 3 — Supprimer les Machines Virtuelles
+
+Après la désallocation et la suppression des disques :
+
+1. Sélectionnez chaque VM (DC01, SEA-ADM1, VM-AZ104-01).
+2. Cliquez sur **Supprimer**.
+3. Confirmez la suppression.
+
+### Étape 4 — Supprimer les組件 réseau
+
+| Ressource | Description |
+|-----------|-------------|
+| VNet1 | Réseau virtuel principal |
+| NSGs | Groupes de sécurité réseau |
+| VNet1-bastion | Hôte Azure Bastion |
+| IPs Publiques | DC01-ip, PublicIP |
+| Interfaces réseau | dc01458, sea-adm1623, vm-az104-0120 |
+
+1. Supprimez d'abord les **IPs Publiques**.
+2. Supprimez les **Interfaces réseau**.
+3. Supprimez l'hôte **Bastion**.
+4. Supprimez les **NSGs**.
+5. Supprimez le **VNet** en dernier (il dépend des autres ressources réseau).
+
+> **Note :** Le VNet ne peut pas être supprimé tant que des sous-réseaux, interfaces ou passerelles y sont encore attachés.
+
+### Étape 5 — Supprimer les ressources de stockage et supervision
+
+| Ressource | Description |
+|-----------|-------------|
+| adminazure2 | Clé SSH stockée |
+| actiongroup-az104-cpu | Groupe d'alertes CPU |
+
+1. Naviguez vers **Clés SSH** et supprimez la clé.
+2. Naviguez vers **Groupes d'alertes** (sous Azure Monitor) et supprimez le groupe d'alerte.
+
+### Étape 6 — Supprimer le Groupe de Ressources complet
+
+En dernier recours, si des ressources subsistent, vous pouvez supprimer l'ensemble du groupe de ressources :
+
+1. Naviguez vers **Groupes de ressources**.
+2. Sélectionnez **RG-Pharmasy**.
+3. Cliquez sur **Supprimer le groupe de ressources**.
+4. Tapez le nom **RG-Pharmasy** pour confirmer.
+5. Cliquez sur **Supprimer**.
+
+### Résumé de l'ordre de suppression
+
+```
+1. Arrêter les VMs
+2. Supprimer les Disques
+3. Supprimer les VMs
+4. Supprimer les IPs Publiques
+5. Supprimer les Interfaces réseau
+6. Supprimer Bastion
+7. Supprimer les NSGs
+8. Supprimer le VNet
+9. Supprimer les ressources Stockage/Supervision
+10. Supprimer le Groupe de Ressources (optionnel)
+```
+
+### Vérification post-nettoyage
+
+Après la procédure de nettoyage, vérifiez que :
+- Le groupe **RG-Pharmasy** n'apparaît plus dans votre abonnement.
+- Aucun coût résiduel n'est associé aux ressources supprimées.
+- Les quotas Azure sont bien libérés.
 - Add PowerShell automation scripts
 - Extend Azure integration scenarios
